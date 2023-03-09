@@ -72,3 +72,54 @@ export class CreateCollectionRspDto {
     @Type(() => Number)
     readonly seqno: number;
 }
+
+@ArgsType()
+@ObjectType()
+export class MintNFTViacollectionReqDto {
+    @Field()
+    @ApiProperty()
+    @IsString()
+    @Type()
+    readonly colletionAddress: string;
+
+    @Field()
+    @ApiProperty()
+    @IsString()
+    @Type()
+    readonly ownerAddress: string;
+
+    @Field()
+    @ApiProperty()
+    @IsString()
+    @Type()
+    readonly suffixOfNFTMeta: string;
+
+    @Field((type) => Int, { nullable: true })
+    @ApiProperty({
+        nullable: true,
+        default: 0,
+    })
+    @IsNumber()
+    @Type(() => Number)
+    @IsOptional()
+    readonly queryId?: number = 0;
+
+    @Field((type) => Int, { nullable: true })
+    @ApiProperty({
+        nullable: true,
+        default: 0,
+    })
+    @IsNumber()
+    @Type(() => Number)
+    @IsOptional()
+    readonly itemId?: number = 0;
+}
+
+@ArgsType()
+@ObjectType()
+export class MintNFTViacollectionRspDto {
+    @Field((type) => Int)
+    @ApiProperty()
+    @Type(() => Number)
+    readonly seqno: number;
+}

@@ -7,3 +7,9 @@ export interface ICollectionDeployData {
     royaltyFactor: number;
     royaltyBase: number;
 }
+
+export interface IMintNFTViaCollectionData {
+    contentBuffer: Buffer;
+    queryId: number;
+    itemId: number;
+}

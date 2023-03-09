@@ -1,9 +1,11 @@
 import * as fs from 'fs';
 import { Injectable } from '@nestjs/common';
 import { TonCenter } from 'scripts/lib/ton-center';
-import { Address, Builder, Cell } from 'ton';
-import { CreateCollectionReqDto, CreateCollectionRspDto } from 'src/dto/minting.dto';
-import { ICollectionDeployData } from 'src/lib/interfaces/minting.interface';
+import { Address, Builder, Cell, toNano } from 'ton';
+import { CollectionOpCode } from 'scripts/op-code';
+import BasicContract from 'scripts/lib/base-contract';
+import { CreateCollectionReqDto, CreateCollectionRspDto, MintNFTViacollectionReqDto, MintNFTViacollectionRspDto } from 'src/dto/minting.dto';
+import { ICollectionDeployData, IMintNFTViaCollectionData } from 'src/lib/interfaces/minting.interface';
 
 @Injectable()
 export class MintingService {
@@ -68,5 +70,54 @@ export class MintingService {
         dataCell.storeRef(royaltyCell); // royalty_params
 
         return dataCell.endCell();
+    }
+
+    async mintNFTViaCollection(args: MintNFTViacollectionReqDto) {
+        const tonCenter = new TonCenter();
+        await tonCenter.getWallet();
+
+        const ownerAddress = Address.parse(args.ownerAddress);
+
+        const deployData: IMintNFTViaCollectionData = {
+            contentBuffer: Buffer.from(args.suffixOfNFTMeta),
+            queryId: args.queryId,
+            itemId: args.itemId,
+        };
+
+        const bodyCell = this.buildNFTDataViaColletion(ownerAddress, deployData);
+
+        const contractAddress = Address.parse(args.colletionAddress);
+        const collection = new BasicContract(contractAddress);
+
+        // get wallet params
+        const walletC = tonCenter.ton.open(tonCenter.wallet);
+        const seqno = await walletC.getSeqno();
+
+        // send message
+        const sender = walletC.sender(tonCenter.keyPair.secretKey);
+        const contract = tonCenter.ton.open(collection);
+        await contract.sendMessage(sender, bodyCell);
+
+        let rsp: MintNFTViacollectionRspDto = {
+            seqno: seqno,
+        };
+        return rsp;
+    }
+
+    buildNFTDataViaColletion(owner: Address, args: IMintNFTViaCollectionData) {
+        let itemCell: Builder = new Builder();
+        itemCell.storeBuffer(args.contentBuffer);
+
+        let nftItemCell: Builder = new Builder();
+        nftItemCell.storeAddress(owner);
+        nftItemCell.storeRef(itemCell);
+
+        let bodyCell: Builder = new Builder();
+        bodyCell.storeUint(CollectionOpCode.Mint, 32); // op code
+        bodyCell.storeUint(args.queryId, 64); // query id -> for royalty
+        bodyCell.storeUint(args.itemId, 64); // index
+        bodyCell.storeCoins(toNano('0.01')); // amount
+        bodyCell.storeRef(nftItemCell);
+        return bodyCell.endCell();
     }
 }
