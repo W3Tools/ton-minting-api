@@ -123,3 +123,63 @@ export class MintNFTViacollectionRspDto {
     @Type(() => Number)
     readonly seqno: number;
 }
+
+@ArgsType()
+@ObjectType()
+export class MintSingleNFTReqDto {
+    @Field()
+    @ApiProperty()
+    @IsString()
+    @Type()
+    readonly NFTMetaUrl: string;
+
+    @Field()
+    @ApiProperty()
+    @IsString()
+    @Type()
+    readonly ownerAddress: string;
+
+    @Field((type) => Int, { nullable: true })
+    @ApiProperty({
+        nullable: true,
+        default: 10,
+    })
+    @IsNumber()
+    @Type(() => Number)
+    @IsOptional()
+    readonly royaltyFactor?: number = 10;
+
+    @Field((type) => Int, { nullable: true })
+    @ApiProperty({
+        nullable: true,
+        default: 10,
+    })
+    @IsNumber()
+    @Type(() => Number)
+    @IsOptional()
+    readonly royaltyBase?: number = 10;
+}
+
+@ObjectType()
+export class MintSingleNFTRspDto {
+    @Field()
+    @ApiProperty()
+    readonly nftAddress: string;
+
+    @Field()
+    @ApiProperty()
+    readonly owner: string;
+
+    @Field()
+    @ApiProperty()
+    readonly nftDetail: string;
+
+    @Field()
+    @ApiProperty()
+    readonly ownerDetail: string;
+
+    @Field((type) => Int)
+    @ApiProperty()
+    @Type(() => Number)
+    readonly seqno: number;
+}

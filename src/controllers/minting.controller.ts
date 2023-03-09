@@ -1,7 +1,7 @@
 import { Request } from 'express';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Body, Controller, Post, Req } from '@nestjs/common';
-import { CreateCollectionReqDto, CreateCollectionRspDto, MintNFTViacollectionReqDto, MintNFTViacollectionRspDto } from 'src/dto/minting.dto';
+import { CreateCollectionReqDto, CreateCollectionRspDto, MintNFTViacollectionReqDto, MintNFTViacollectionRspDto, MintSingleNFTReqDto, MintSingleNFTRspDto } from 'src/dto/minting.dto';
 import { Public } from 'src/lib/decorators/public.decorator';
 import { MintingService } from 'src/services/minting.service';
 import { IResponse, ResponseInternalError, ResponseSucc } from 'src/lib/interfaces/response.interface';
@@ -38,6 +38,22 @@ export class MintingController {
     async mintNFTViaCollection(@Req() req: Request, @Body() body: MintNFTViacollectionReqDto): Promise<IResponse> {
         try {
             const rsp = await this.mintingService.mintNFTViaCollection(body);
+            return new ResponseSucc(rsp);
+        } catch (err) {
+            return new ResponseInternalError((err as Error).message);
+        }
+    }
+
+    @Public()
+    @ApiResponse({
+        status: 200,
+        description: 'mint single nft',
+        type: MintSingleNFTRspDto,
+    })
+    @Post('/mint_single_nft')
+    async mintSingleNFT(@Req() req: Request, @Body() body: MintSingleNFTReqDto): Promise<IResponse> {
+        try {
+            const rsp = await this.mintingService.mintSingleNFT(body);
             return new ResponseSucc(rsp);
         } catch (err) {
             return new ResponseInternalError((err as Error).message);

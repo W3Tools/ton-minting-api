@@ -13,3 +13,9 @@ export interface IMintNFTViaCollectionData {
     queryId: number;
     itemId: number;
 }
+
+export interface IMintSingleNFTData {
+    contentBuffer: Cell;
+    royaltyFactor: number;
+    royaltyBase: number;
+}

@@ -4,8 +4,8 @@ import { TonCenter } from 'scripts/lib/ton-center';
 import { Address, Builder, Cell, toNano } from 'ton';
 import { CollectionOpCode } from 'scripts/op-code';
 import BasicContract from 'scripts/lib/base-contract';
-import { CreateCollectionReqDto, CreateCollectionRspDto, MintNFTViacollectionReqDto, MintNFTViacollectionRspDto } from 'src/dto/minting.dto';
-import { ICollectionDeployData, IMintNFTViaCollectionData } from 'src/lib/interfaces/minting.interface';
+import { CreateCollectionReqDto, CreateCollectionRspDto, MintNFTViacollectionReqDto, MintNFTViacollectionRspDto, MintSingleNFTReqDto, MintSingleNFTRspDto } from 'src/dto/minting.dto';
+import { ICollectionDeployData, IMintNFTViaCollectionData, IMintSingleNFTData } from 'src/lib/interfaces/minting.interface';
 
 @Injectable()
 export class MintingService {
@@ -119,5 +119,58 @@ export class MintingService {
         bodyCell.storeCoins(toNano('0.01')); // amount
         bodyCell.storeRef(nftItemCell);
         return bodyCell.endCell();
+    }
+
+    async mintSingleNFT(args: MintSingleNFTReqDto) {
+        const tonCenter = new TonCenter();
+        await tonCenter.getWallet();
+
+        const ownerAddress = Address.parse(args.ownerAddress);
+
+        // let contentCell = tonCenter.encodeContent('https://file-8sgle4kt.w3tools.app/ton/1.json');
+        const deployData: IMintSingleNFTData = {
+            contentBuffer: tonCenter.encodeContent(args.NFTMetaUrl),
+            royaltyFactor: args.royaltyFactor,
+            royaltyBase: args.royaltyBase,
+        };
+        const dataCell = this.buildSingleNFTData(ownerAddress, deployData);
+
+        // get new contract address
+        const newContract = await tonCenter.createContract(dataCell);
+
+        // get wallet params
+        const walletC = tonCenter.ton.open(tonCenter.wallet);
+        const seqno = await walletC.getSeqno();
+        console.log('seqno: ', seqno);
+
+        // deploy
+        const sender = walletC.sender(tonCenter.keyPair.secretKey);
+        const contract = tonCenter.ton.open(newContract);
+        await contract.sendDeploy(sender);
+        console.log('done');
+
+        let rsp: MintSingleNFTRspDto = {
+            nftAddress: newContract.address.toString(),
+            owner: ownerAddress.toString(),
+            nftDetail: `${tonCenter.uri}/${newContract.address.toString()}`,
+            ownerDetail: `${tonCenter.uri}/${ownerAddress.toString()}`,
+            seqno: seqno,
+        };
+        return rsp;
+    }
+
+    buildSingleNFTData(owner: Address, args: IMintSingleNFTData) {
+        let royaltyCell: Builder = new Builder();
+        royaltyCell.storeUint(args.royaltyFactor, 16);
+        royaltyCell.storeUint(args.royaltyBase, 16);
+        royaltyCell.storeAddress(owner);
+
+        let dataCell: Builder = new Builder();
+        dataCell.storeAddress(owner); // owner address
+        dataCell.storeAddress(owner); // editor_address
+        dataCell.storeRef(args.contentBuffer); // content
+        dataCell.storeRef(royaltyCell); // royalty_param
+
+        return dataCell.endCell();
     }
 }
