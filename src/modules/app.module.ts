@@ -4,9 +4,10 @@ dotenv.config();
 import { Module } from '@nestjs/common';
 import { AppService } from 'src/services/app.service';
 import { AppController } from 'src/controllers/app.controller';
+import { MintingModule } from './minting.module';
 
 @Module({
-    imports: [],
+    imports: [MintingModule],
     controllers: [AppController],
     providers: [AppService],
     exports: [],
