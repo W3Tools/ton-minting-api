@@ -68,9 +68,7 @@ export class CreateCollectionRspDto {
     readonly ownerDetail: string;
 
     @Field((type) => Int)
-    @ApiProperty({
-        type: Int,
-    })
+    @ApiProperty()
     @Type(() => Number)
     readonly seqno: number;
 }
