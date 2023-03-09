@@ -136,7 +136,7 @@ export class MintingService {
         const dataCell = this.buildSingleNFTData(ownerAddress, deployData);
 
         // get new contract address
-        const newContract = await tonCenter.createContract(dataCell);
+        const newContract = await tonCenter.createContract(dataCell, "nft-single.cell");
 
         // get wallet params
         const walletC = tonCenter.ton.open(tonCenter.wallet);
