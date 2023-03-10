@@ -1,18 +1,16 @@
 import { Request } from 'express';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { Body, Controller, Post, Req } from '@nestjs/common';
 import { CreateCollectionReqDto, CreateCollectionRspDto, MintNFTViacollectionReqDto, MintNFTViacollectionRspDto, MintSingleNFTReqDto, MintSingleNFTRspDto } from 'src/dto/minting.dto';
-import { Public } from 'src/lib/decorators/public.decorator';
 import { MintingService } from 'src/services/minting.service';
 import { IResponse, ResponseInternalError, ResponseSucc } from 'src/lib/interfaces/response.interface';
 
-@Public() // decorator: this api is public, no identity verification required
 @ApiTags('Minting') // swagger tag category
+@ApiSecurity('session') // swagger authentication, in header.session
 @Controller()
 export class MintingController {
     constructor(private readonly mintingService: MintingService) {}
 
-    @Public()
     @ApiResponse({
         status: 200,
         description: 'create collection',
@@ -28,7 +26,6 @@ export class MintingController {
         }
     }
 
-    @Public()
     @ApiResponse({
         status: 200,
         description: 'Mint nft via collection',
@@ -44,7 +41,6 @@ export class MintingController {
         }
     }
 
-    @Public()
     @ApiResponse({
         status: 200,
         description: 'mint single nft',
