@@ -1,10 +1,12 @@
 import { Request } from 'express';
 import { ApiResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
-import { Body, Controller, Post, Req } from '@nestjs/common';
+import { Body, Controller, Post, Req, UnauthorizedException } from '@nestjs/common';
 import { CreateCollectionReqDto, CreateCollectionRspDto, MintNFTViacollectionReqDto, MintNFTViacollectionRspDto, MintSingleNFTReqDto, MintSingleNFTRspDto } from 'src/dto/minting.dto';
 import { MintingService } from 'src/services/minting.service';
 import { IResponse, ResponseInternalError, ResponseSucc } from 'src/lib/interfaces/response.interface';
+import { Public } from 'src/lib/decorators/public.decorator';
 
+@Public()
 @ApiTags('Minting') // swagger tag category
 @ApiSecurity('session') // swagger authentication, in header.session
 @Controller()
@@ -19,6 +21,8 @@ export class MintingController {
     @Post('/create_collection')
     async createCollection(@Req() req: Request, @Body() body: CreateCollectionReqDto): Promise<IResponse> {
         try {
+            if (!req.headers['apikey'] || req.headers['apikey'] != process.env.PASSWORD) throw new UnauthorizedException();
+
             const rsp = await this.mintingService.createCollection(body);
             return new ResponseSucc(rsp);
         } catch (err) {
@@ -34,6 +38,8 @@ export class MintingController {
     @Post('/mint_nft_via_collection')
     async mintNFTViaCollection(@Req() req: Request, @Body() body: MintNFTViacollectionReqDto): Promise<IResponse> {
         try {
+            if (!req.headers['apikey'] || req.headers['apikey'] != process.env.PASSWORD) throw new UnauthorizedException();
+
             const rsp = await this.mintingService.mintNFTViaCollection(body);
             return new ResponseSucc(rsp);
         } catch (err) {
@@ -49,6 +55,8 @@ export class MintingController {
     @Post('/mint_single_nft')
     async mintSingleNFT(@Req() req: Request, @Body() body: MintSingleNFTReqDto): Promise<IResponse> {
         try {
+            if (!req.headers['apikey'] || req.headers['apikey'] != process.env.PASSWORD) throw new UnauthorizedException();
+
             const rsp = await this.mintingService.mintSingleNFT(body);
             return new ResponseSucc(rsp);
         } catch (err) {
